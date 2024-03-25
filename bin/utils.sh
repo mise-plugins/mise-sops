@@ -18,9 +18,12 @@ sops_env() {
     return 1
   fi
 
+  # split filenames
+  FILENAMES=${MISE_TOOL_OPTS__FILENAME//[,;:]/$'\n'}
+
   # export names filter
   if [[ -n ${MISE_TOOL_OPTS__NAMES-} ]]; then
-    NAMES="\(${MISE_TOOL_OPTS__NAMES//:/\\|}\)"
+    NAMES="\(${MISE_TOOL_OPTS__NAMES//[,;:|]/\\|}\)"
   else
     NAMES="\w\+"
   fi
@@ -34,5 +37,5 @@ sops_env() {
       continue
     fi
     "$(sops_bin)" -d "${filename}"
-  done < <(tr : $'\n' <<<"${MISE_TOOL_OPTS__FILENAME}") | grep "^export ${NAMES}="
+  done <<< "${FILENAMES}" | grep "^export ${NAMES}="
 }
