@@ -9,13 +9,20 @@ echoerr() {
 }
 
 sops_bin() {
-  echo "$MISE_INSTALL_PATH/bin/sops"
+  echo "${MISE_INSTALL_PATH}/bin/sops"
 }
 
 sops_env() {
   if [[ -z ${MISE_TOOL_OPTS__FILENAME-} ]]; then
     echoerr "mise-sops: No filename provided."
     return 1
+  fi
+
+  # export names filter
+  if [[ -n ${MISE_TOOL_OPTS__NAMES-} ]]; then
+    NAMES="\(${MISE_TOOL_OPTS__NAMES//:/\\|}\)"
+  else
+    NAMES="\w\+"
   fi
 
   while read -r filename; do
@@ -27,5 +34,5 @@ sops_env() {
       continue
     fi
     "$(sops_bin)" -d "${filename}"
-  done < <(tr : $'\n' <<<"${MISE_TOOL_OPTS__FILENAME}")
+  done < <(tr : $'\n' <<<"${MISE_TOOL_OPTS__FILENAME}") | grep "^export ${NAMES}="
 }
