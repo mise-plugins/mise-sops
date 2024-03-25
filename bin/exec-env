@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+
+set -euo pipefail
+
+# shellcheck source-path=.
+source "${MISE_PLUGIN_PATH}/bin/utils.sh"
+
+# shellcheck disable=SC1090
+source <(sops_env)

@@ -1,0 +1,27 @@
+[exec-env]
+cache-key = [
+  """
+  {% if project_root %}
+    {{ project_root | canonicalize }}
+  {% endif %}
+  """,
+  """
+  {% if opts.filename %}
+    {{ opts.filename }}
+  {% endif %}
+  """
+]
+
+[list-bin-paths]
+cache-key = [
+  """
+  {% if project_root %}
+    {{ project_root | canonicalize }}
+  {% endif %}
+  """,
+  """
+  {% if opts.filename %}
+    {{ opts.filename }}
+  {% endif %}
+  """
+]
