@@ -13,18 +13,19 @@ sops_bin() {
 }
 
 sops_env() {
-  local filename
-  filename=$(eval "printf '%s' '${MISE_TOOL_OPTS__FILENAME-}'")
-  if [[ -z ${filename} ]]; then
+  if [[ -z ${MISE_TOOL_OPTS__FILENAME-} ]]; then
     echoerr "mise-sops: No filename provided."
     return 1
   fi
-  if [[ ${filename} != /* ]] && [[ -n ${MISE_PROJECT_ROOT-} ]]; then
-    filename="${MISE_PROJECT_ROOT-}/${filename}"
-  fi
-  if [[ ! -f ${filename} ]]; then
-    echoerr "mise-sops: Filename '${filename}' not found."
-    return 1
-  fi
-  "$(sops_bin)" -d "${filename}"
+
+  while read -r filename; do
+    if [[ ${filename} != /* ]] && [[ -n ${MISE_PROJECT_ROOT-} ]]; then
+      filename="${MISE_PROJECT_ROOT-}/${filename}"
+    fi
+    if [[ ! -f ${filename} ]]; then
+      echoerr "mise-sops: Filename '${filename}' not found."
+      continue
+    fi
+    "$(sops_bin)" -d "${filename}"
+  done < <(tr : $'\n' <<<"${MISE_TOOL_OPTS__FILENAME}")
 }
