@@ -12,6 +12,8 @@ sops_bin() {
   echo "${MISE_INSTALL_PATH}/bin/sops"
 }
 
+DELIMS="[,;:]"
+
 sops_env() {
   if [[ -z ${MISE_TOOL_OPTS__FILENAME-} ]]; then
     echoerr "mise-sops: No filename provided."
@@ -19,13 +21,15 @@ sops_env() {
   fi
 
   # split filenames
-  FILENAMES=${MISE_TOOL_OPTS__FILENAME//[,;:]/$'\n'}
+  FILENAMES=${MISE_TOOL_OPTS__FILENAME//${DELIMS}/$'\n'}
 
   # export names filter
   if [[ -n ${MISE_TOOL_OPTS__NAMES-} ]]; then
-    NAMES="\(${MISE_TOOL_OPTS__NAMES//[,;:|]/\\|}\)"
+    # convert delimiters into regex alternation
+    NAMES="^export (${MISE_TOOL_OPTS__NAMES//${DELIMS}/|})="
   else
-    NAMES="\w\+"
+    # match everything
+    NAMES="^export ([a-zA-Z0-9_]+)="
   fi
 
   while read -r filename; do
@@ -36,6 +40,10 @@ sops_env() {
       echoerr "mise-sops: Filename '${filename}' not found."
       continue
     fi
-    "$(sops_bin)" -d "${filename}"
-  done <<< "${FILENAMES}" | grep "^export ${NAMES}="
+    while read -r LINE; do
+      if [[ ${LINE} =~ ${NAMES} ]]; then
+        printf '%s\n' "${LINE}"
+      fi
+    done < <("$(sops_bin)" -d "${filename}")
+  done <<< "${FILENAMES}"
 }
