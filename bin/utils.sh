@@ -5,28 +5,26 @@ if [[ ${MISE_TRACE-} == 1 ]]; then
 fi
 
 echoerr() {
-  echo "$1" >&2
+  printf 'mise-sops: %s\n' "$1" >&2
 }
 
 sops_bin() {
   "${MISE_INSTALL_PATH}/bin/sops" "$@"
 }
 
-DELIMS="[,;:]"
-
 sops_env() {
   if [[ -z ${MISE_TOOL_OPTS__FILENAME-} ]]; then
-    echoerr "mise-sops: no filename provided"
+    echoerr "no filename provided"
     return 1
   fi
 
   # split filenames
-  FILENAMES=${MISE_TOOL_OPTS__FILENAME//${DELIMS}/$'\n'}
+  FILENAMES=${MISE_TOOL_OPTS__FILENAME//:/$'\n'}
 
   # export names filter
   if [[ -n ${MISE_TOOL_OPTS__NAMES-} ]]; then
-    # convert delimiters into regex alternation
-    NAMES="^export (${MISE_TOOL_OPTS__NAMES//${DELIMS}/|})="
+    # convert delimiter into regex alternation
+    NAMES="^export (${MISE_TOOL_OPTS__NAMES//:/|})="
   else
     # match everything
     NAMES="^export ([a-zA-Z0-9_]+)="
@@ -41,7 +39,7 @@ sops_env() {
     fi
 
     if [[ ! -f ${filename} ]]; then
-      echoerr "mise-sops: filename not found: ${filename}"
+      echoerr "filename not found: ${filename}"
       continue
     fi
 
@@ -60,7 +58,7 @@ sops_env() {
   fi
 
   if ((!LINES)); then
-    echoerr "mise-sops: no variables match name pattern: ${MISE_TOOL_OPTS__NAMES-}"
+    echoerr "no variables match name pattern: ${MISE_TOOL_OPTS__NAMES-}"
     return 1
   fi
 }
