@@ -9,7 +9,7 @@ set -euo pipefail
 export RELEASES_PATH=https://api.github.com/repos/getsops/sops/releases
 
 echoerr() {
-  printf 'mise-sops: %s\n' "$1" >&2
+  printf 'mise-sops: %s\n' "$@" >&2
 }
 
 sort_versions() {

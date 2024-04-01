@@ -5,25 +5,6 @@ source "${MISE_PLUGIN_PATH-${0%/*}/..}/utils.sh"
 
 DOWNLOAD_PATH="https://github.com/getsops/sops/releases/download"
 
-ERRORS=0
-
-if [[ -z ${MISE_INSTALL_TYPE-} ]]; then
-  echoerr "MISE_INSTALL_TYPE is required"
-  ERRORS=$((ERRORS + 1))
-fi
-if [[ -z ${MISE_INSTALL_VERSION-} ]]; then
-  echoerr "MISE_INSTALL_VERSION is required"
-  ERRORS=$((ERRORS + 1))
-fi
-if [[ -z ${MISE_INSTALL_PATH-} ]]; then
-  echoerr "MISE_INSTALL_PATH is required"
-  ERRORS=$((ERRORS + 1))
-fi
-
-if ((ERRORS)); then
-  exit 1
-fi
-
 install_sops() {
   local install_type=$1
   if [[ "${install_type}" != "version" ]]; then
@@ -49,8 +30,8 @@ install_sops() {
   mkdir -p "${bin_install_path}"
 
   echo "Downloading sops from ${download_url}"
-  if ! curl -qSsfL "${download_url}" -o "${bin_path}"; then
-    echoerr "Error: URL responded exceptionally"
+  if ! curl -qsSfL -o "${bin_path}" "${download_url}"; then
+    echoerr "URL responded exceptionally"
     return 1
   fi
   chmod +x "${bin_path}"
@@ -64,10 +45,10 @@ get_cpu() {
   local machine_hardware_name
   machine_hardware_name=${MISE_SOPS_OVERWRITE_ARCH:-"$(uname -m)"}
 
-  case "${machine_hardware_name}" in
-    'x86_64') local cpu_type="amd64" ;;
-    'aarch64') local cpu_type="arm64" ;;
-    *) local cpu_type="${machine_hardware_name}" ;;
+  case ${machine_hardware_name} in
+    x86_64) local cpu_type="amd64" ;;
+    aarch64) local cpu_type="arm64" ;;
+    *) local cpu_type=${machine_hardware_name} ;;
   esac
 
   echo "${cpu_type}"
@@ -86,4 +67,28 @@ get_download_url() {
   echo "${url}"
 }
 
-install_sops "${MISE_INSTALL_TYPE}" "${MISE_INSTALL_VERSION}" "${MISE_INSTALL_PATH}"
+main() {
+  local ERRORS=()
+
+  if [[ -z ${MISE_INSTALL_TYPE-} ]]; then
+    ERRORS+=("MISE_INSTALL_TYPE is required")
+  fi
+  if [[ -z ${MISE_INSTALL_VERSION-} ]]; then
+    ERRORS+=("MISE_INSTALL_VERSION is required")
+  fi
+  if [[ -z ${MISE_INSTALL_PATH-} ]]; then
+    ERRORS+=("MISE_INSTALL_PATH is required")
+  fi
+
+  if ((${#ERRORS[@]})); then
+    echoerr "${ERRORS[@]}"
+    exit 1
+  fi
+
+  install_sops \
+    "${MISE_INSTALL_TYPE}" \
+    "${MISE_INSTALL_VERSION}" \
+    "${MISE_INSTALL_PATH}"
+}
+
+main
