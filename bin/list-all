@@ -1,8 +1,10 @@
 #! /usr/bin/env bash
 
-set -euo pipefail
+# shellcheck source-path=..
+source "${MISE_PLUGIN_PATH-${0%/*}/..}/utils.sh"
 
 RELEASES_PATH=https://api.github.com/repos/getsops/sops/releases
+EXCLUDE_VERSIONS="2\.\+"
 
 if [[ -n ${GITHUB_API_TOKEN-} ]]; then
   set -- "$@" -H "Authorization: token ${GITHUB_API_TOKEN}"
@@ -15,7 +17,7 @@ function sort_versions() {
 
 # stripping off the 'v' prefix as it causes issues with 'mise install foo latest'
 curl -qsSL "$@" "${RELEASES_PATH}" |
-  grep -oE "tag_name\": \".{1,15}\"," |
-  grep -v "2.0.10" |
-  sed 's/tag_name": "//; s/^v//; s/",//' |
+  grep -o '"tag_name": "v\?[0-9][^"]\+"' |
+  grep -o '[0-9][^"]\+' |
+  grep -v "^${EXCLUDE_VERSIONS}" |
   sort_versions

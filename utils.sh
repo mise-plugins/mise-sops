@@ -1,8 +1,12 @@
-#! /usr/bin/env bash
+# shellcheck shell=bash
 
 if [[ ${MISE_TRACE-} == 1 ]]; then
   set -x
 fi
+
+set -euo pipefail
+
+export RELEASES_PATH=https://api.github.com/repos/getsops/sops/releases
 
 echoerr() {
   printf 'mise-sops: %s\n' "$1" >&2

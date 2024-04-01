@@ -1,4 +1,4 @@
-SH_SRCFILES = $(shell git ls-files "bin/*")
+SH_SRCFILES = $(shell git ls-files "bin/*" "*.sh")
 SHFMT_BASE_FLAGS = -i 2 -ci --space-redirects
 
 fmt:

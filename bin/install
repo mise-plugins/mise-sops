@@ -1,35 +1,63 @@
 #! /usr/bin/env bash
 
-set -euo pipefail
+# shellcheck source-path=..
+source "${MISE_PLUGIN_PATH-${0%/*}/..}/utils.sh"
 
-[ -z "${ASDF_INSTALL_TYPE+x}" ] && echo "ASDF_INSTALL_TYPE is required" && exit 1
-[ -z "${ASDF_INSTALL_VERSION+x}" ] && echo "ASDF_INSTALL_VERSION is required" && exit 1
-[ -z "${ASDF_INSTALL_PATH+x}" ] && echo "ASDF_INSTALL_PATH is required" && exit 1
+DOWNLOAD_PATH="https://github.com/getsops/sops/releases/download"
+
+ERRORS=0
+
+if [[ -z ${MISE_INSTALL_TYPE-} ]]; then
+  echoerr "MISE_INSTALL_TYPE is required"
+  ERRORS=$((ERRORS + 1))
+fi
+if [[ -z ${MISE_INSTALL_VERSION-} ]]; then
+  echoerr "MISE_INSTALL_VERSION is required"
+  ERRORS=$((ERRORS + 1))
+fi
+if [[ -z ${MISE_INSTALL_PATH-} ]]; then
+  echoerr "MISE_INSTALL_PATH is required"
+  ERRORS=$((ERRORS + 1))
+fi
+
+if ((ERRORS)); then
+  exit 1
+fi
+
+later_version() {
+  printf '%s\n' "$@" | sort -Vr | head -n1
+}
 
 install_sops() {
   local install_type=$1
-  [ "$install_type" != "version" ] && echo "install type, $install_type, is not supported" && exit 1
+  if [[ "${install_type}" != "version" ]]; then
+    echoerr "install type, ${install_type}, is not supported"
+    return 1
+  fi
 
-  # Note that we're adding back the 'v' tag prefix only for versions > 3.4
   local version=$2
-  if [[ ! (${version} =~ [1-3]\.[0-4]) ]]; then
-    # version is greater than 3.4.0
+
+  # Note that we're adding back the 'v' tag prefix only for versions >= 3.5.0
+  if [[ ${version} == $(later_version "${version}" 3.5.0) ]]; then
     version="v${version}"
   fi
 
   local install_path=$3
 
-  local bin_install_path="$install_path/bin"
+  local bin_install_path="${install_path}/bin"
   local bin_path="${bin_install_path}/sops"
 
   local download_url
-  download_url=$(get_download_url "$version")
+  download_url=$(get_download_url "${version}")
 
   mkdir -p "${bin_install_path}"
 
   echo "Downloading sops from ${download_url}"
-  curl -sfL "$download_url" -o "$bin_path" || >&2 echo "Error: URL responded exceptionally"
-  chmod +x "$bin_path"
+  if ! curl -qSsfL "${download_url}" -o "${bin_path}"; then
+    echoerr "Error: URL responded exceptionally"
+    return 1
+  fi
+  chmod +x "${bin_path}"
 }
 
 get_arch() {
@@ -38,30 +66,29 @@ get_arch() {
 
 get_cpu() {
   local machine_hardware_name
-  machine_hardware_name=${ASDF_SOPS_OVERWRITE_ARCH:-"$(uname -m)"}
+  machine_hardware_name=${MISE_SOPS_OVERWRITE_ARCH:-"$(uname -m)"}
 
-  case "$machine_hardware_name" in
+  case "${machine_hardware_name}" in
     'x86_64') local cpu_type="amd64" ;;
     'aarch64') local cpu_type="arm64" ;;
-    *) local cpu_type="$machine_hardware_name" ;;
+    *) local cpu_type="${machine_hardware_name}" ;;
   esac
 
-  echo "$cpu_type"
+  echo "${cpu_type}"
 }
 
 get_download_url() {
   local version="$1"
   local platform
   platform=$(get_arch)
-  local url=""
 
-  if [[ "$version" < "v3.7.2" ]]; then
-    url="https://github.com/getsops/sops/releases/download/${version}/sops-${version}.${platform}"
-  else
-    url="https://github.com/getsops/sops/releases/download/${version}/sops-${version}.${platform}.$(get_cpu)"
+  local url="${DOWNLOAD_PATH}/${version}/sops-${version}.${platform}"
+
+  if [[ ${version} == $(later_version "${version}" v3.7.2) ]]; then
+    url="${url}.$(get_cpu)"
   fi
 
-  echo "$url"
+  echo "${url}"
 }
 
-install_sops "$ASDF_INSTALL_TYPE" "$ASDF_INSTALL_VERSION" "$ASDF_INSTALL_PATH"
+install_sops "${MISE_INSTALL_TYPE}" "${MISE_INSTALL_VERSION}" "${MISE_INSTALL_PATH}"
