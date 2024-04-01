@@ -12,6 +12,16 @@ echoerr() {
   printf 'mise-sops: %s\n' "$1" >&2
 }
 
+sort_versions() {
+  sed 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$/.z/; G; s/\n/ /' |
+    LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}'
+}
+
+min_version() {
+  version=$1
+  [[ ${version} == $(printf '%s\n' "$@" | sort_versions | tail -n1) ]]
+}
+
 sops_bin() {
   "${MISE_INSTALL_PATH}/bin/sops" "$@"
 }

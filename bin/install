@@ -24,10 +24,6 @@ if ((ERRORS)); then
   exit 1
 fi
 
-later_version() {
-  printf '%s\n' "$@" | sort -Vr | head -n1
-}
-
 install_sops() {
   local install_type=$1
   if [[ "${install_type}" != "version" ]]; then
@@ -37,8 +33,8 @@ install_sops() {
 
   local version=$2
 
-  # Note that we're adding back the 'v' tag prefix only for versions >= 3.5.0
-  if [[ ${version} == $(later_version "${version}" 3.5.0) ]]; then
+  # add the 'v' tag prefix for versions >= 3.5.0
+  if min_version "${version}" 3.5.0; then
     version="v${version}"
   fi
 
@@ -79,12 +75,11 @@ get_cpu() {
 
 get_download_url() {
   local version="$1"
-  local platform
-  platform=$(get_arch)
+  local url
 
-  local url="${DOWNLOAD_PATH}/${version}/sops-${version}.${platform}"
+  url="${DOWNLOAD_PATH}/${version}/sops-${version}.$(get_arch)"
 
-  if [[ ${version} == $(later_version "${version}" v3.7.2) ]]; then
+  if min_version "${version}" v3.7.2; then
     url="${url}.$(get_cpu)"
   fi
 
