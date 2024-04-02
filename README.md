@@ -7,8 +7,8 @@ Based on [asdf-sops](https://github.com/feniix/asdf-sops).
 
 ## Install
 
-```
-sops plugin-add sops https://github.com/joshbode/mise-sops.git
+```bash
+$ mise plugins install https://github.com/mise-plugins/mise-sops.git
 ```
 
 ## Environment Activation
@@ -48,5 +48,4 @@ sops = { version = "latest", filename = ".foo.env:.bar.env" }
 
 ## License
 
-Licensed under the
-[MIT license](https://github.com/joshbode/mise-sops/blob/main/LICENSE).
+Licensed under the [MIT license](LICENSE).
