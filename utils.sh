@@ -6,8 +6,6 @@ fi
 
 set -euo pipefail
 
-export RELEASES_PATH=https://api.github.com/repos/getsops/sops/releases
-
 echoerr() {
   printf 'mise-sops: %s\n' "$@" >&2
 }
