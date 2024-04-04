@@ -26,8 +26,7 @@ sops_bin() {
 
 sops_env() {
   if [[ -z ${MISE_TOOL_OPTS__FILENAME-} ]]; then
-    echoerr "no filename provided"
-    return 1
+    return
   fi
 
   # split filenames
