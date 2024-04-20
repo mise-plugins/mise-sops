@@ -17,7 +17,7 @@ URL=${RELEASES_PATH}
 
 # strip off the 'v' prefix as it causes issues with 'mise install foo latest'
 while [[ -n ${URL} ]]; do
-  RESULT=$(curl --include -qsSfL "$@" "${URL}")
+  RESULT=$(curl -qsSfL --include "$@" "${URL}")
   grep -o "${LINE_RE}" <<< "${RESULT}"
   if LINK=$(grep -m1 '^link: ' <<< "${RESULT}") && [[ ${LINK} =~ ${NEXT_LINK} ]]; then
     URL=${BASH_REMATCH[1]}
