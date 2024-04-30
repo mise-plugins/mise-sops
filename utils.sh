@@ -45,6 +45,7 @@ sops_env() {
   LINES=0
 
   while read -r filename; do
+    filename=${filename/#~/${HOME}}
     if [[ ${filename} != /* ]] && [[ -n ${MISE_PROJECT_ROOT-} ]]; then
       filename="${MISE_PROJECT_ROOT-}/${filename}"
     fi
