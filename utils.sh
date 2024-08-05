@@ -35,10 +35,10 @@ sops_env() {
   # export names filter
   if [[ -n ${MISE_TOOL_OPTS__NAMES-} ]]; then
     # convert delimiter into regex alternation
-    NAMES="^export (${MISE_TOOL_OPTS__NAMES//:/|})="
+    NAMES="^(${MISE_TOOL_OPTS__NAMES//:/|})="
   else
     # match everything
-    NAMES="^export ([a-zA-Z0-9_]+)="
+    NAMES="^([a-zA-Z0-9_]+)="
   fi
 
   FILES=0
@@ -60,9 +60,9 @@ sops_env() {
     while read -r LINE; do
       if [[ ${LINE} =~ ${NAMES} ]]; then
         LINES=1
-        printf '%s\n' "${LINE}"
+        printf 'export %q\n' "${LINE}"
       fi
-    done < <(sops_bin -d "${filename}")
+    done < <(sops_bin --output-type dotenv -d "${filename}")
   done <<< "${FILENAMES}"
 
   if ((!FILES)); then
@@ -70,7 +70,7 @@ sops_env() {
   fi
 
   if ((!LINES)); then
-    echoerr "no variables match name pattern: ${MISE_TOOL_OPTS__NAMES-}"
+    echoerr "no variables match name pattern: ${NAMES}"
     return 1
   fi
 }
