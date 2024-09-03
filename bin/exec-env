@@ -4,4 +4,4 @@
 source "${MISE_PLUGIN_PATH-${0%/*}/..}/utils.sh"
 
 # shellcheck disable=SC1090
-source <(sops_env)
+eval "$(sops_env)"
