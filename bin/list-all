@@ -9,7 +9,9 @@ NEXT_LINK='<([^\>]+)>; rel="next"'
 VERSION_RE='[0-9][^"]\+'
 LINE_RE=$(printf '"tag_name": "v\\?%s"' "${VERSION_RE}")
 
-if [[ -n ${GITHUB_TOKEN-} ]]; then
+if [[ -n ${MISE_GITHUB_TOKEN-} ]]; then
+  set -- "$@" -H "Authorization: Bearer ${MISE_GITHUB_TOKEN}"
+elif [[ -n ${GITHUB_TOKEN-} ]]; then
   set -- "$@" -H "Authorization: Bearer ${GITHUB_TOKEN}"
 fi
 
